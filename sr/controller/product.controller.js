@@ -1,0 +1,152 @@
+import Product from "../models/product.model.js";
+import { body, validationResult } from "express-validator";
+import { uploadToCloudinary } from "../middleware/upload.js";
+
+export const createProduct = async (req, res) => {
+    try {
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                success: false,
+                errors: errors.array()
+            });
+        }
+
+        const { name, barcode, category, brand, unit, costPrice, sellingPrice, isActive } = req.body;
+
+        const isProductExists = await Product.findOne({ name, barcode });
+        if (isProductExists) {
+            return res.status(400).json({ message: "Product already exists" });
+        }
+        const images = [];
+
+        if (req.files && req.files.length > 0) {
+            for (const file of req.files) {
+                const result = await uploadToCloudinary(file.buffer);
+                console.log(result, 'fasldfjhalsdfjhlasdjfhlasjd')
+                images.push({
+                    url: result.secure_url,     // ⭐ IMPORTANT
+                    public_id: result.public_id
+                });
+            }
+        }
+        console.log(req.files,'myFiles')
+        const product = new Product({
+            name,
+            barcode,
+            category,
+            brand,
+            unit,
+            costPrice,
+            sellingPrice,
+            isActive,
+            productImages: images
+        });
+        await product.save();
+        res.status(201).json({ message: product });
+    } catch (e) {
+        console.log(e.message);
+        res.status(500).json({ error: e.message });
+    }
+}
+
+export const updateProduct = async (req, res) => {
+    try {
+        const productId = req.params.id;
+        const { name, barcode, category, brand, unit, costPrice, sellingPrice, isActive } = req.body;
+        const isProductExists = await Product.findById(productId);
+        if (!isProductExists) {
+            return res.status(400).json({ message: "Product not found" });
+        }
+        const images = [];
+
+        if (req.files && req.files.length > 0) {
+            for (const file of req.files) {
+                const result = await uploadToCloudinary(file.buffer);
+                console.log(result, 'fasldfjhalsdfjhlasdjfhlasjd')
+                images.push({
+                    url: result.secure_url,     // ⭐ IMPORTANT
+                    public_id: result.public_id
+                });
+            }
+        }
+        if (isProductExists) {
+            const updateProduct = await Product.findByIdAndUpdate(productId, {
+                name,
+                barcode,
+                category,
+                brand,
+                unit,
+                costPrice,
+                sellingPrice,
+                isActive,
+                productImages: images
+            })
+            res.status(200).json({ message: "Product updated" });
+        }
+    } catch (e) {
+        console.log(e);
+        res.status(500).json({ error: e.message });
+    }
+}
+
+export const getAllProducts = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+
+        const skip = (page - 1) * limit;
+
+        const total = await Product.countDocuments();
+
+        const products = await Product.find({})
+            .populate('category brand')
+            .skip(skip)
+            .limit(limit)
+            .sort({ createdAt: -1 });
+        console.log(products, 'falsdjfhlasjfhdlasjkfhdlkasjd')
+        res.status(200).json({
+            page,
+            limit,
+            total,
+            totalPages: Math.ceil(total / limit),
+            data: products,
+        })
+
+    } catch (e) {
+        console.log(e);
+        res.status(500).json({ error: e.message });
+    }
+}
+
+export const getSingleProduct = async (req, res) => {
+    try {
+        const product = await Product.findById(req.params.id);
+        res.status(200).json(product);
+    } catch (e) {
+        console.log(e);
+        res.status(500).json({ error: e.message });
+    }
+}
+
+export const deleteProduct = async (req, res) => {
+    try {
+        const productId = req.params.id;
+
+        const isProductExists = await Product.findById(productId);
+
+        if (!isProductExists) {
+            return res.status(400).json({ message: "Product not found" });
+        }
+
+        const product = await Product.findByIdAndDelete(productId);
+
+        if (product) {
+            res.status(200).json({ message: "Product deleted" });
+        }
+    } catch (e) {
+        console.log(e);
+        res.status(500).json({ error: e.message });
+    }
+}
