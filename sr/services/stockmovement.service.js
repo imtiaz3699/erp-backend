@@ -1,5 +1,5 @@
 import Stock from "../models/stock.model.js";
-import StockMovement from "../models/stockMovement.model.js";
+import StockMovement from "../models/stockmovement.model.js";
 
 export const stockMovementService = async ({
   productId,
