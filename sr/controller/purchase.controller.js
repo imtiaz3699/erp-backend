@@ -1,4 +1,4 @@
-import { formatInvoiceNumber, successResponse,getNextInvoiceNumber } from "../helper/helperFunctions.js";
+import { formatInvoiceNumber, successResponse, getNextInvoiceNumber } from "../helper/helperFunctions.js";
 import Purchase from "../models/purchase.model.js";
 import Supplier from "../models/supplier.model.js";
 import { stockMovementService } from "../services/stockmovement.service.js";
@@ -32,7 +32,7 @@ export const createPurchase = async (req, res) => {
         return successResponse(res, 200, "Purchase created.", purchase)
     } catch (e) {
         console.log(e);
-        res.status(500).json({ error: e.message });
+        res.status(500).json({ error: `${e.message}` });
     }
 }
 
@@ -50,7 +50,7 @@ export const getAllPurchaseOrders = async (req, res) => {
 
         // Fetch Data
         const purchaseOrders = await Purchase.find({})
-            .populate("supplierId branchId items.productId createdBy updatedBy")
+            .populate("supplierId branchId items.productId createdBy")
             .skip(skip)
             .limit(limit)
             .sort({ createdAt: -1 });
@@ -82,3 +82,31 @@ export const getAllPurchaseOrders = async (req, res) => {
     }
 };
 
+
+
+
+export const getPendingPurchaseOrders = async (req, res) => {
+    try {
+        const purchaseOrders = await Purchase.find({ status: "pending" })
+            .populate("supplierId branchId items.productId createdBy")
+            .sort({ createdAt: -1 });
+        return successResponse(res, 200, "Purchase orders fetched successfully.", purchaseOrders);
+    } catch (e) {
+        console.log(e);
+        res.status(500).json({ error: e.message });
+    }
+}
+
+
+export const getProductsBasedOnPurchaseOrder = async (req, res) => {
+    const id = req.params.id
+    try {
+        const getProducts = await Purchase.findById(id)
+            .populate("items.productId");
+
+        return successResponse(res, 200, "Products fetched successfully.", getProducts);
+    } catch (e) {
+        console.log(e);
+        res.status(500).json({ error: e.message });
+    }
+}

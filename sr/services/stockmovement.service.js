@@ -1,5 +1,6 @@
 import Stock from "../models/stock.model.js";
 import StockMovement from "../models/stockmovement.model.js";
+import Purchase from "../models/purchase.model.js";
 
 export const stockMovementService = async ({
   productId,
@@ -34,6 +35,18 @@ export const stockMovementService = async ({
   // 3. STOCK LOGIC (CORE RULE ENGINE)
 
   if (type === "IN") {
+    if (referenceType === "PURCHASE") {
+      const alreadyStockMovementCreated = await StockMovement.findOne({
+        referenceId
+      })
+      console.log(referenceId,'stockreferenceId')
+      if (alreadyStockMovementCreated) {
+        throw new Error("Stock movement already created")
+      } else {
+        const updatePurchaseStatus = await Purchase.findOneAndUpdate({ _id: referenceId }, { status: "completed" })  
+      }
+    }
+
     stock.quantity += quantity;
     stock.lastStockInAt = new Date();
 
@@ -78,9 +91,9 @@ export const stockMovementService = async ({
     type,
     quantity,
     referenceType,
-    referenceId,
-    fromBranchId,
-    toBranchId,
+    referenceId: referenceId || undefined,
+    fromBranchId: fromBranchId || undefined,
+    toBranchId: toBranchId || undefined,
     costPrice,
     sellingPrice,
     createdBy: userId,
