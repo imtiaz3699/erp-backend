@@ -1,7 +1,7 @@
 import express from "express";
 
 import authMiddleware from "../middleware/auth.middleware.js";
-import { createProduct, getAllProducts, getSingleProduct, updateProduct, deleteProduct } from "../controller/product.controller.js";
+import { createProduct, getAllProducts, getSingleProduct, updateProduct, deleteProduct,searchProductsByName } from "../controller/product.controller.js";
 import { body, validationResult } from "express-validator";
 import { upload, uploadToCloudinary } from "../middleware/upload.js";
 const router = express.Router();
@@ -251,5 +251,24 @@ router.get("/get-single-product/:id", authMiddleware, getSingleProduct);
  */
 router.delete("/delete-product/:id", authMiddleware, deleteProduct);
 
-
+/**
+ * @swagger
+ * /api/product/find-product/{name}:
+ *   get:
+ *     summary: Get Products By Name
+ *     tags: [Product]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: name
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Product Name
+ *     responses:
+ *       200:
+ *         description: Single Product
+ */
+router.get("/find-product/:name", authMiddleware, searchProductsByName);
 export default router;

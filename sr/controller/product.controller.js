@@ -31,7 +31,7 @@ export const createProduct = async (req, res) => {
                 });
             }
         }
-        console.log(req.files,'myFiles')
+        console.log(req.files, 'myFiles')
         const product = new Product({
             name,
             barcode,
@@ -94,7 +94,7 @@ export const updateProduct = async (req, res) => {
 export const getAllProducts = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
+        const limit = parseInt(req.query.limit) || 100;
 
         const skip = (page - 1) * limit;
 
@@ -145,6 +145,20 @@ export const deleteProduct = async (req, res) => {
         if (product) {
             res.status(200).json({ message: "Product deleted" });
         }
+    } catch (e) {
+        console.log(e);
+        res.status(500).json({ error: e.message });
+    }
+}
+
+
+
+export const searchProductsByName = async (req, res) => {
+    try {
+        const { name } = req.params;
+        const products = await Product.find({ name: { $regex: name, $options: 'i' } });
+
+        return res.status(200).json(products);
     } catch (e) {
         console.log(e);
         res.status(500).json({ error: e.message });

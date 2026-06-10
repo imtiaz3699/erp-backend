@@ -120,3 +120,43 @@ export const getAvailableProductsForStock = async (req, res) => {
         res.status(500).json({ error: e.message });
     }
 }
+
+export const getAvailableProductsForBranch = async (req, res) => {
+    try {
+        const { branchId } = req.params;
+        const stocks = await Stock.find({ branchId }).populate("productId");
+        console.log(stocks)
+        const products = stocks.map((stock) => ({
+            stockId: stock._id,
+            productId: stock.productId,
+            quantity: stock.quantity,
+            costPrice: stock.costPrice,
+            sellingPrice: stock.sellingPrice
+        }))
+        return res.status(200).json({
+            success: true,
+            count: products.length,
+            data: products,
+        })
+    } catch (e) {
+        console.log(e);
+        res.status(500).json({ error: e.message });
+    }
+}
+
+export const getStockBasedOnProductAndBranch = async (req, res) => {
+    try {
+        const { productId, branchId } = req.query;
+        const stock = await Stock.findOne({ productId, branchId })
+        if (!stock) {
+            return res.status(404).json({ message: "Stock not found for the given product and branch" })
+        }
+        return res.status(200).json({
+            success: true,
+            data: stock,
+        })
+    } catch (e) {
+        console.log(e);
+        res.status(500).json({ error: e.message });
+    }
+}

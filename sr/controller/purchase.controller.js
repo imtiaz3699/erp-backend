@@ -1,4 +1,4 @@
-import { successResponse } from "../helper/helperFunctions.js";
+import { formatInvoiceNumber, successResponse,getNextInvoiceNumber } from "../helper/helperFunctions.js";
 import Purchase from "../models/purchase.model.js";
 import Supplier from "../models/supplier.model.js";
 import { stockMovementService } from "../services/stockmovement.service.js";
@@ -7,11 +7,13 @@ export const createPurchase = async (req, res) => {
     try {
         const { supplierId, branchId, items, totalAmount } = req.body;
         // Purchase invoice
+        const number = await getNextInvoiceNumber();
         const purchase = await Purchase.create({
             supplierId,
             branchId,
             items,
             totalAmount,
+            invoiceNumber: formatInvoiceNumber(number),
             createdBy: req.user?._id
         })
         // process stock in for each item

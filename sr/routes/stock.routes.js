@@ -1,7 +1,7 @@
 import express from 'express';
 
 import authMiddleware from '../middleware/auth.middleware.js';
-import { createStock, updateStock, getAllStocks, getSingleStock, deleteStock, getAvailableProductsForStock } from '../controller/stock.controller.js';
+import { createStock, updateStock, getAllStocks, getSingleStock, deleteStock, getAvailableProductsForStock, getAvailableProductsForBranch, getStockBasedOnProductAndBranch } from '../controller/stock.controller.js';
 import { body, validationResult, param } from 'express-validator';
 
 const router = express.Router();
@@ -575,5 +575,170 @@ router.delete(
  *                   example: Failed to fetch available products
  */
 router.get("/available-products/:branchId", authMiddleware, getAvailableProductsForStock)
+
+/**
+ * @swagger
+ * /api/stock/available-products-per-branch/{branchId}:
+ *   get:
+ *     summary: Get products available in a branch
+ *     tags:
+ *       - Stock
+ *
+ *     parameters:
+ *       - in: path
+ *         name: branchId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Branch ID
+ *
+ *     responses:
+ *       200:
+ *         description: Available products fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *
+ *                 count:
+ *                   type: number
+ *                   example: 2
+ *
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       stockId:
+ *                         type: string
+ *                         example: "689e1d12ab45cd67890ef123"
+ *
+ *                       productId:
+ *                         type: string
+ *                         example: "689e1d12ab45cd67890ef123"
+ *
+ *                       quantity:
+ *                         type: number
+ *                         example: 10
+ *
+ *                       costPrice:
+ *                         type: number
+ *                         example: 1200
+ *
+ *                       sellingPrice:
+ *                         type: number
+ *                         example: 1500
+ *
+ *       500:
+ *         description: Failed to fetch available products
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *
+ *                 message:
+ *                   type: string
+ *                   example: Failed to fetch available products
+ */
+
+router.get("/available-products-per-branch/:branchId", authMiddleware, getAvailableProductsForBranch)
+
+
+/**
+ * @swagger
+ * /api/stock/get-stock-by-product-branch:
+ *   get:
+ *     summary: Get stock by product and branch
+ *     tags:
+ *       - Stock
+ *
+ *     parameters:
+ *       - in: query
+ *         name: productId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Product ID
+ *
+ *       - in: query
+ *         name: branchId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Branch ID
+ *
+ *     responses:
+ *       200:
+ *         description: Stock fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: "689e1d12ab45cd67890ef123"
+ *
+ *                     productId:
+ *                       type: string
+ *                       example: "689e1d12ab45cd67890ef123"
+ *
+ *                     branchId:
+ *                       type: string
+ *                       example: "689e1d12ab45cd67890ef456"
+ *
+ *                     quantity:
+ *                       type: number
+ *                       example: 10
+ *
+ *                     costPrice:
+ *                       type: number
+ *                       example: 1200
+ *
+ *                     sellingPrice:
+ *                       type: number
+ *                       example: 1500
+ *
+ *       404:
+ *         description: Stock not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Stock not found for the given product and branch
+ *
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Internal server error
+ */
+
+router.get("/get-stock-by-product-branch", authMiddleware, getStockBasedOnProductAndBranch);
+
+
 
 export default router;

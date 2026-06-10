@@ -1,3 +1,4 @@
+import { InvoiceNumber } from "../models/purchase.model.js";
 export const errorResponse = (
   res,
   statusCode = 500,
@@ -23,4 +24,19 @@ export const successResponse = (
     ...(data !== null && { data }),
   });
 };
+
+
+export const getNextInvoiceNumber = async () => {
+  const counter = await InvoiceNumber.findOneAndUpdate(
+    { name: "invoice" },
+    { $inc: { value: 1 } },
+    { new: true, upsert: true }
+  )
+    return counter.value;
+}
+
+export const formatInvoiceNumber = (num) => {
+  const padded = String(num).padStart(3, "0");
+  return `INV-${padded}`
+}
 

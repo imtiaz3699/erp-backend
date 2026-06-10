@@ -118,4 +118,5 @@ router.post(
     createPurchase
 );
 
+router
 export default router;

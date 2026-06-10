@@ -12,7 +12,7 @@ import purchaseRoutes from "./routes/purchase.routes.js";
 import swaggerUiExpress from "swagger-ui-express";
 import swaggerSpec from "./config/swagger.js";
 
-
+import stockMovementRoutes from "./routes/stockMovement.routes.js";
 const app = express();
 
 app.use(cors());
@@ -30,6 +30,7 @@ app.use("/api/brand", brandRoutes);
 app.use("/api/category", categoryRoutes);
 app.use("/api/branch", branchRoutes);
 app.use("/api/stock", stockRoutes);
+app.use("/api/stock-movement", stockMovementRoutes);
 app.use("/api/supplier", supplierRoutes);
 app.use("/api/purchase", purchaseRoutes);
 

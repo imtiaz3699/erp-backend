@@ -40,5 +40,18 @@ const purchaseSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
+const invoiceNumberSchema = new mongoose.Schema({
+    name:{
+        type:String,
+        unique:true,
+    },
+    value:{
+        type:Number,
+        default:0
+    }
+})
+export const InvoiceNumber = mongoose.model("InvoiceNumber",invoiceNumberSchema);
+
+
 const Purchase = mongoose.model("Purchase",purchaseSchema);
 export default Purchase;
