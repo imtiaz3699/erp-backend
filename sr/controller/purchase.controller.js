@@ -103,7 +103,7 @@ export const getProductsBasedOnPurchaseOrder = async (req, res) => {
     try {
         const getProducts = await Purchase.findById(id)
             .populate("items.productId");
-
+        console.log(getProducts?.items,'fasdlfjasldfkjhalsdkjfhsjkd')
         return successResponse(res, 200, "Products fetched successfully.", getProducts);
     } catch (e) {
         console.log(e);
