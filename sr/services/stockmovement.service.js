@@ -35,17 +35,30 @@ export const stockMovementService = async ({
   // 3. STOCK LOGIC (CORE RULE ENGINE)
 
   if (type === "IN") {
+
     if (referenceType === "PURCHASE") {
-      const alreadyStockMovementCreated = await StockMovement.findOne({
-        referenceId
-      })
-      console.log(referenceId,'stockreferenceId')
-      if (alreadyStockMovementCreated) {
-        throw new Error("Stock movement already created")
-      } else {
-        const updatePurchaseStatus = await Purchase.findOneAndUpdate({ _id: referenceId }, { status: "completed" })  
+      const purchase = await Purchase.findById(referenceId)
+      const item = purchase.items.find(item => item.productId.toString() === productId.toString())
+      if (!item) {
+        throw new Error("Product Does not belong to purchase order.")
       }
+      if (item.received) {
+        throw new Error("Stock Already received for this product.")
+      }
+      item.received = true;
+      const totalItems = purchase.items.length;
+      const receivedItems = purchase.items.filter(item => item.received).length;
+
+      if (receivedItems === 0) {
+        purchase.status = "pending";
+      } else if (receivedItems < totalItems) {
+        purchase.status = "partially_received"
+      } else {
+        purchase.status = "completed"
+      }
+      await purchase.save();
     }
+
 
     stock.quantity += quantity;
     stock.lastStockInAt = new Date();

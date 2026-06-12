@@ -23,6 +23,10 @@ const purchaseSchema = new mongoose.Schema({
             },
             quantity: Number,
             costPrice: Number,
+            received: {
+                type: Boolean,
+                default: false
+            }
         }
     ],
     totalAmount: {
@@ -31,7 +35,7 @@ const purchaseSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ["pending", "completed", "cancelled"],
+        enum: ["pending", "completed", "partially_received", "cancelled"],
         default: "pending",
     },
     createdBy: {
@@ -41,17 +45,17 @@ const purchaseSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 const invoiceNumberSchema = new mongoose.Schema({
-    name:{
-        type:String,
-        unique:true,
+    name: {
+        type: String,
+        unique: true,
     },
-    value:{
-        type:Number,
-        default:0
+    value: {
+        type: Number,
+        default: 0
     }
 })
-export const InvoiceNumber = mongoose.model("InvoiceNumber",invoiceNumberSchema);
+export const InvoiceNumber = mongoose.model("InvoiceNumber", invoiceNumberSchema);
 
 
-const Purchase = mongoose.model("Purchase",purchaseSchema);
+const Purchase = mongoose.model("Purchase", purchaseSchema);
 export default Purchase;

@@ -16,19 +16,6 @@ export const createPurchase = async (req, res) => {
             invoiceNumber: formatInvoiceNumber(number),
             createdBy: req.user?._id
         })
-        // process stock in for each item
-        for (const item of items) {
-            await stockMovementService({
-                productId: item.productId,
-                branchId,
-                quantity: item.quantity,
-                costPrice: item.costPrice,
-                type: "IN",
-                referenceType: "PURCHASE",
-                referenceId: purchase?._id,
-                userId: req.user?._id
-            })
-        }
         return successResponse(res, 200, "Purchase created.", purchase)
     } catch (e) {
         console.log(e);
@@ -87,7 +74,7 @@ export const getAllPurchaseOrders = async (req, res) => {
 
 export const getPendingPurchaseOrders = async (req, res) => {
     try {
-        const purchaseOrders = await Purchase.find({ status: "pending" })
+        const purchaseOrders = await Purchase.find({ status: {$in:["pending","partially_received"]} })
             .populate("supplierId branchId items.productId createdBy")
             .sort({ createdAt: -1 });
         return successResponse(res, 200, "Purchase orders fetched successfully.", purchaseOrders);
@@ -103,8 +90,9 @@ export const getProductsBasedOnPurchaseOrder = async (req, res) => {
     try {
         const getProducts = await Purchase.findById(id)
             .populate("items.productId");
-        console.log(getProducts?.items,'fasdlfjasldfkjhalsdkjfhsjkd')
-        return successResponse(res, 200, "Products fetched successfully.", getProducts);
+        const filteredProducts = getProducts.items.filter((item)=> item.received === false)    
+        console.log(getProducts,'fasdlfjasldfkjhalsdkjfhsjkd')
+        return successResponse(res, 200, "Products fetched successfully.", filteredProducts);
     } catch (e) {
         console.log(e);
         res.status(500).json({ error: e.message });
