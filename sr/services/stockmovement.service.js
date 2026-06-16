@@ -73,12 +73,10 @@ export const stockMovementService = async ({
   }
 
   if (type === "OUT") {
-    if (stock.quantity < quantity) {
-      throw new Error("Insufficient stock");
+    if (referenceType === "SALE") {
+      stock.quantity -= quantity;
+      stock.lastStockOutAt = new Date();
     }
-
-    stock.quantity -= quantity;
-    stock.lastStockOutAt = new Date();
   }
 
   if (type === "DAMAGE") {

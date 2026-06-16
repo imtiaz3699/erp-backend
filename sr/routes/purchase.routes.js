@@ -1,7 +1,7 @@
 import express from 'express';
 
 import authMiddleware from '../middleware/auth.middleware.js';
-import { createPurchase, getAllPurchaseOrders, getPendingPurchaseOrders, getProductsBasedOnPurchaseOrder } from '../controller/purchase.controller.js';
+import { cancelPurchaseOrder, createPurchase, getAllPurchaseOrders, getPendingPurchaseOrders, getProductsBasedOnPurchaseOrder } from '../controller/purchase.controller.js';
 import { body, validationResult, param } from 'express-validator';
 
 const router = express.Router();
@@ -464,4 +464,30 @@ router.get("/get-pending-purchase-orders", authMiddleware, getPendingPurchaseOrd
 
 
 router.get("/get-products-by-purchase-order-id/:id", authMiddleware, getProductsBasedOnPurchaseOrder);
+
+
+/**
+ * @swagger
+ * /api/purchase/purchase-order/{id}/cancel:
+ *   put:
+ *     summary: Cancel purchase order
+ *     tags:
+ *       - Purchase
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Cancelled successfully
+ *       400:
+ *         description: Only pending purchase orders can be cancelled
+ *       500:
+ *         description: Server error
+ */
+
+router.put(`/purchase-order/:id/cancel`,authMiddleware,cancelPurchaseOrder);
+
 export default router;

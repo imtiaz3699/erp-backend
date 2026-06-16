@@ -1,4 +1,5 @@
 import { InvoiceNumber } from "../models/purchase.model.js";
+import { SaleInvoiceNumber } from "../models/sale.model.js";
 export const errorResponse = (
   res,
   statusCode = 500,
@@ -32,7 +33,7 @@ export const getNextInvoiceNumber = async () => {
     { $inc: { value: 1 } },
     { new: true, upsert: true }
   )
-    return counter.value;
+  return counter.value;
 }
 
 export const formatInvoiceNumber = (num) => {
@@ -40,3 +41,16 @@ export const formatInvoiceNumber = (num) => {
   return `INV-${padded}`
 }
 
+
+export const saleInvoiceNumber = async () => {
+  const counter = await SaleInvoiceNumber.findOneAndUpdate(
+    { name: "sale" },
+    { $inc: { value: 1 } },
+    { new: true, upsert: true }
+  )
+  return counter.value;
+}
+export const formatSaleInvoiceNumber = (num) => {
+  const padded = String(num).padStart(3, "0");
+  return `SAL-${padded}`
+}

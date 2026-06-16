@@ -70,11 +70,27 @@ export const getAllPurchaseOrders = async (req, res) => {
 };
 
 
-
+export const cancelPurchaseOrder = async (req, res) => {
+    const id = req.params.id;
+    try {
+        const updatePurchaseOrder = await Purchase.findOneAndUpdate(
+            { _id: id, status: 'pending' },
+            { status: 'cancelled' },
+            { new: true }
+        )
+        if (!updatePurchaseOrder) {
+            return res.status(400).json({ success: false, message: "Only pending purchase orders can be cancelled." })
+        }
+        return res.status(200).json({data:updatePurchaseOrder,message:"Purchase order has been cancelled."})
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({ success: false, error: e.message });
+    }
+}
 
 export const getPendingPurchaseOrders = async (req, res) => {
     try {
-        const purchaseOrders = await Purchase.find({ status: {$in:["pending","partially_received"]} })
+        const purchaseOrders = await Purchase.find({ status: { $in: ["pending", "partially_received"] } })
             .populate("supplierId branchId items.productId createdBy")
             .sort({ createdAt: -1 });
         return successResponse(res, 200, "Purchase orders fetched successfully.", purchaseOrders);
@@ -90,8 +106,8 @@ export const getProductsBasedOnPurchaseOrder = async (req, res) => {
     try {
         const getProducts = await Purchase.findById(id)
             .populate("items.productId");
-        const filteredProducts = getProducts.items.filter((item)=> item.received === false)    
-        console.log(getProducts,'fasdlfjasldfkjhalsdkjfhsjkd')
+        const filteredProducts = getProducts.items.filter((item) => item.received === false)
+        console.log(getProducts, 'fasdlfjasldfkjhalsdkjfhsjkd')
         return successResponse(res, 200, "Products fetched successfully.", filteredProducts);
     } catch (e) {
         console.log(e);
