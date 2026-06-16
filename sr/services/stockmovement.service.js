@@ -1,7 +1,7 @@
 import Stock from "../models/stock.model.js";
 import StockMovement from "../models/stockmovement.model.js";
 import Purchase from "../models/purchase.model.js";
-
+import mongoose from "mongoose";
 export const stockMovementService = async ({
   productId,
   branchId,
@@ -16,10 +16,7 @@ export const stockMovementService = async ({
   userId,
 }) => {
 
-  // 1. Find stock
   let stock = await Stock.findOne({ productId, branchId });
-
-  // 2. Create stock if not exists
   if (!stock) {
     stock = await Stock.create({
       productId,
@@ -31,9 +28,6 @@ export const stockMovementService = async ({
       maxStockLevel: 0,
     });
   }
-
-  // 3. STOCK LOGIC (CORE RULE ENGINE)
-
   if (type === "IN") {
 
     if (referenceType === "PURCHASE") {
@@ -72,11 +66,55 @@ export const stockMovementService = async ({
     }
   }
 
-  if (type === "OUT") {
-    if (referenceType === "SALE") {
-      stock.quantity -= quantity;
-      stock.lastStockOutAt = new Date();
+  if (type === "OUT" && referenceType === "TRANSFER") {
+    const session = await mongoose.startSession();
+    try {
+      await session.withTransaction(async () => {
+        const fromBranchStock = await Stock.findOne({ productId, branchId: fromBranchId }).session(session);
+        if (!fromBranchStock) {
+          throw new Error("Source Stock does not exists.")
+        }
+
+        if (fromBranchStock.quantity < quantity) {
+          throw new Error("Insufficient stock for transfer.")
+        }
+
+        fromBranchStock.quantity -= quantity;
+        await fromBranchStock.save({ session });
+
+        let toStock = await Stock.findOne({ productId, branchId: toBranchId }).session(session);
+
+        if (!toStock) {
+          toStock = new Stock({
+            productId,
+            branchId: toBranchId,
+            quantity: 0,
+            reservedQty: 0,
+            damagedQty: 0,
+            minStockLevel: 0,
+            maxStockLevel: 0,
+          })
+        }
+        toStock.quantity += quantity;
+        await toStock.save({ session });
+      })
+
+      session.endSession();
+    } catch (e) {
+      session.endSession();
+      throw e;
     }
+  }
+
+  if (type === "OUT" && referenceType === "SALE") {
+    if (stock.quantity < 1) {
+      throw new Error("Insufficient stock for sale.");
+    }
+    if (stock.quantity < quantity) {
+      throw new Error("Insufficient stock for sale.");
+    }
+    stock.quantity -= quantity;
+    stock.lastStockOutAt = new Date();
   }
 
   if (type === "DAMAGE") {
@@ -84,15 +122,6 @@ export const stockMovementService = async ({
     stock.damagedQty = (stock.damagedQty || 0) + quantity;
   }
 
-  if (type === "TRANSFER") {
-    if (stock.quantity < quantity) {
-      throw new Error("Insufficient stock for transfer");
-    }
-
-    stock.quantity -= quantity;
-  }
-
-  // 4. SAVE STOCK
   await stock.save();
 
   // 5. CREATE STOCK MOVEMENT LOG
