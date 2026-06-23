@@ -17,6 +17,7 @@ export const stockMovementService = async ({
 }) => {
 
   let stock = await Stock.findOne({ productId, branchId });
+  console.log(stock,"noor")
   if (!stock) {
     stock = await Stock.create({
       productId,

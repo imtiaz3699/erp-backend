@@ -1,7 +1,7 @@
 import express from "express";
 
 import authMiddleware from "../middleware/auth.middleware.js";
-import { createProduct, getAllProducts, getSingleProduct, updateProduct, deleteProduct,searchProductsByName } from "../controller/product.controller.js";
+import { createProduct, getAllProducts, getSingleProduct, updateProduct, deleteProduct, searchProductsByName, searchProductByNameAndBranch } from "../controller/product.controller.js";
 import { body, validationResult } from "express-validator";
 import { upload, uploadToCloudinary } from "../middleware/upload.js";
 const router = express.Router();
@@ -271,4 +271,53 @@ router.delete("/delete-product/:id", authMiddleware, deleteProduct);
  *         description: Single Product
  */
 router.get("/find-product/:name", authMiddleware, searchProductsByName);
+
+
+/**
+ * @swagger
+ * /products/search/{branchId}/{name}:
+ *   get:
+ *     summary: Search products by name within a specific branch
+ *     tags:
+ *       - Products
+ *     parameters:
+ *       - in: path
+ *         name: branchId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Branch ID
+ *       - in: path
+ *         name: name
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Product name to search
+ *     responses:
+ *       200:
+ *         description: List of matching products
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
+router.get(
+  "/search/:branchId/:name",
+  authMiddleware,
+  searchProductByNameAndBranch
+);
+
+
+
 export default router;

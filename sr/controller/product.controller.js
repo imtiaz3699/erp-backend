@@ -1,7 +1,8 @@
 import Product from "../models/product.model.js";
 import { body, validationResult } from "express-validator";
 import { uploadToCloudinary } from "../middleware/upload.js";
-
+import Stock from "../models/stock.model.js";
+import mongoose from "mongoose";
 export const createProduct = async (req, res) => {
     try {
         const errors = validationResult(req);
@@ -159,6 +160,46 @@ export const searchProductsByName = async (req, res) => {
         const products = await Product.find({ name: { $regex: name, $options: 'i' } });
 
         return res.status(200).json(products);
+    } catch (e) {
+        console.log(e);
+        res.status(500).json({ error: e.message });
+    }
+}
+
+export const searchProductByNameAndBranch = async (req, res) => {
+    const { branchId, name } = req.params;
+    try {
+        const stocks = await Stock.aggregate([
+            {
+                $match: {
+                    branchId: new mongoose.Types.ObjectId(branchId),
+                    quantity: { $gt: 0 }
+                },
+
+
+            },
+            {
+                $lookup: {
+                    from: "products",
+                    localField: "productId",
+                    foreignField: "_id",
+                    as: "product"
+                }
+            },
+            {
+                $unwind: "$product"
+            },
+            {
+                $match: {
+                    "product.name": {
+                        $regex: name,
+                        $options: "i"
+                    }
+                }
+            }
+        ])
+        console.log(stocks, 'fasdlfjhasldkjfsd')
+        return res.status(200).json(stocks);
     } catch (e) {
         console.log(e);
         res.status(500).json({ error: e.message });
