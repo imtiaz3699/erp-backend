@@ -4,24 +4,24 @@ import Stock from "../models/stock.model.js";
 import { stockMovementService } from "../services/stockmovement.service.js";
 
 export const createSale = async (req, res) => {
-    const { branchId, items, totalAmount } = req.body;
+    const { branchId, items, totalAmount,fromBranchId } = req.body;
     try {
+        console.log(items,'fadlfjhalsdkfjhalsdkjfhlasjkdf')
         const saleNumber = await saleInvoiceNumber();
-        if (Array.isArray(items)) {
-            for (const item of items) {
-                const stock = await Stock.findOne({
-                    productId: item.productId,
-                    branchId,
-                })
-                if (!stock) {
-                    return errorResponse(res, 400, "Stock does not exists.");
-                }
-                if (stock.quantity < item.quantity) {
-                    return errorResponse(res, 400, `Insufficient stock. Available stock ${stock.quantity}`)
-                }
-            }
-        }
-
+        // if (Array.isArray(items)) {
+        //     for (const item of items) {
+        //         const stock = await Stock.findOne({
+        //             productId: item.productId,
+        //             branchId,
+        //         })
+        //         if (!stock) {
+        //             return errorResponse(res, 400, "Stock does not exists.");
+        //         }
+        //         if (stock.quantity < item.quantity) {
+        //             return errorResponse(res, 400, `Insufficient stock. Available stock ${stock.quantity}`)
+        //         }
+        //     }
+        // }
         const sale = await Sale.create({
             invoiceNumber: formatSaleInvoiceNumber(saleNumber),
             branchId,
@@ -29,19 +29,23 @@ export const createSale = async (req, res) => {
             totalAmount,
             createdBy: req.user._id
         })
-        console.log(sale,'Gorgeous')
+        // console.log('stockmovement')
         for (const item of items) {
             await stockMovementService({
                 productId: item.productId,
                 branchId,
-                quantity: item.quantiy,
                 type: "OUT",
+                quantity: item.quantity,
                 referenceType: "SALE",
                 referenceId: sale._id,
+                fromBranchId: branchId,
+                toBranchId:undefined,
+                costPrice:item.costPrice,
                 sellingPrice: item.sellingPrice,
-                userId: req.user._id
+                userId: req.user.id
             })
         }
+        
         return successResponse(res, 200, "Sale successfull", sale);
 
     } catch (e) {

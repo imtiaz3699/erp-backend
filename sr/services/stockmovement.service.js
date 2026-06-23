@@ -15,9 +15,7 @@ export const stockMovementService = async ({
   sellingPrice,
   userId,
 }) => {
-
   let stock = await Stock.findOne({ productId, branchId });
-  console.log(stock,"noor")
   if (!stock) {
     stock = await Stock.create({
       productId,
@@ -108,6 +106,7 @@ export const stockMovementService = async ({
   }
 
   if (type === "OUT" && referenceType === "SALE") {
+    console.log('creating stock movement', quantity)
     if (stock.quantity < 1) {
       throw new Error("Insufficient stock for sale.");
     }
