@@ -58,4 +58,3 @@ const saleInvoiceNumber = new mongoose.Schema({
 export const SaleInvoiceNumber = mongoose.model("SaleInvoiceNumber",saleInvoiceNumber)
 const Sale = mongoose.model("Sale",saleSchema);
 export default Sale;
-
