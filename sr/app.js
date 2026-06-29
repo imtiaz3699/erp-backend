@@ -10,6 +10,7 @@ import supplierRoutes from "./routes/supplier.routes.js";
 import purchaseRoutes from "./routes/purchase.routes.js";
 import salesRoutes from "./routes/sale.routes.js";
 import transferRoutes from './routes/transfer.routes.js'
+import stockAdjustmentRoutes from './routes/adjustments.routes.js'
 
 import swaggerUiExpress from "swagger-ui-express";
 import swaggerSpec from "./config/swagger.js";
@@ -37,5 +38,6 @@ app.use("/api/supplier", supplierRoutes);
 app.use("/api/purchase", purchaseRoutes);
 app.use("/api/sale", salesRoutes);
 app.use("/api/transfer", transferRoutes);
+app.use("/api/adjustment", stockAdjustmentRoutes);
 
 export default app;
